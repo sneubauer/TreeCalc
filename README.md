@@ -2,7 +2,9 @@ What is TreeCalc?
 -----------------
 
 TreeCalc is a programming language with focus on calculations and business rules.
-The most important features:
+
+The most important features are:
+
 * easy to learn
 * no side effects
 * data is part of the program
