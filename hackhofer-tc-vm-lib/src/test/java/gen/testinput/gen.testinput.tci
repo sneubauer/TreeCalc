@@ -1,0 +1,882 @@
+.calcs size=0
+.nodes size=1
+.node node=0 id=maintree ;maintree
+.edges from=0 size=0
+.tables size=6
+.table table=0 name=T9 rows=2 cols=2 shuffled=false directaccess=true directaccessoffset=1
+.tablecol table=0 col=0 name="CODE" numeric=true numericsuper=true numericunique=true
+.tablecol table=0 col=1 name="VALUE" numeric=false numericsuper=false numericunique=false
+.tablevalue table=0 ind=0 row=0 col=0 value="1"
+.tablevalue table=0 ind=1 row=0 col=1 value="code 1"
+.tablevalue table=0 ind=2 row=1 col=0 value="2"
+.tablevalue table=0 ind=3 row=1 col=1 value="code 2"
+.table table=1 name=T10 rows=2 cols=2 shuffled=false directaccess=true directaccessoffset=1
+.tablecol table=1 col=0 name="CODE" numeric=true numericsuper=true numericunique=true
+.tablecol table=1 col=1 name="VALUE" numeric=false numericsuper=false numericunique=false
+.tablevalue table=1 ind=0 row=0 col=0 value="1"
+.tablevalue table=1 ind=1 row=0 col=1 value="code 1"
+.tablevalue table=1 ind=2 row=1 col=0 value="2"
+.tablevalue table=1 ind=3 row=1 col=1 value="code 2"
+.table table=2 name=T11 rows=2 cols=3 shuffled=false directaccess=true directaccessoffset=1
+.tablecol table=2 col=0 name="CODE" numeric=true numericsuper=true numericunique=true
+.tablecol table=2 col=1 name="VALUE" numeric=false numericsuper=false numericunique=false
+.tablecol table=2 col=2 name="TEXT" numeric=false numericsuper=false numericunique=false
+.tablevalue table=2 ind=0 row=0 col=0 value="1"
+.tablevalue table=2 ind=1 row=0 col=1 value="code 1"
+.tablevalue table=2 ind=2 row=0 col=2 value="text 1"
+.tablevalue table=2 ind=3 row=1 col=0 value="2"
+.tablevalue table=2 ind=4 row=1 col=1 value="code 2"
+.tablevalue table=2 ind=5 row=1 col=2 value="text 2"
+.table table=3 name=T12 rows=2 cols=3 shuffled=false directaccess=true directaccessoffset=1
+.tablecol table=3 col=0 name="CODE" numeric=true numericsuper=true numericunique=true
+.tablecol table=3 col=1 name="VALUE" numeric=false numericsuper=false numericunique=false
+.tablecol table=3 col=2 name="TEXT" numeric=false numericsuper=false numericunique=false
+.tablevalue table=3 ind=0 row=0 col=0 value="1"
+.tablevalue table=3 ind=1 row=0 col=1 value="code 1"
+.tablevalue table=3 ind=2 row=0 col=2 value="text 1"
+.tablevalue table=3 ind=3 row=1 col=0 value="2"
+.tablevalue table=3 ind=4 row=1 col=1 value="code 2"
+.tablevalue table=3 ind=5 row=1 col=2 value="text 2"
+.table table=4 name=T13 rows=2 cols=3 shuffled=false directaccess=true directaccessoffset=1
+.tablecol table=4 col=0 name="CODE" numeric=true numericsuper=true numericunique=true
+.tablecol table=4 col=1 name="VALUE" numeric=false numericsuper=false numericunique=false
+.tablecol table=4 col=2 name="TEXT" numeric=false numericsuper=false numericunique=false
+.tablevalue table=4 ind=0 row=0 col=0 value="1"
+.tablevalue table=4 ind=1 row=0 col=1 value="code 1"
+.tablevalue table=4 ind=2 row=0 col=2 value="text 1"
+.tablevalue table=4 ind=3 row=1 col=0 value="2"
+.tablevalue table=4 ind=4 row=1 col=1 value="code 2"
+.tablevalue table=4 ind=5 row=1 col=2 value="text 2"
+.table table=5 name=T14 rows=2 cols=2 shuffled=true directaccess=true directaccessoffset=1
+.tablecol table=5 col=0 name="CODE" numeric=true numericsuper=true numericunique=true
+.tablecol table=5 col=1 name="VALUE" numeric=false numericsuper=false numericunique=false
+.tablevalue table=5 ind=0 row=0 col=0 value="1"
+.tablevalue table=5 ind=1 row=0 col=1 value="code 1"
+.tablevalue table=5 ind=2 row=1 col=0 value="2"
+.tablevalue table=5 ind=3 row=1 col=1 value="code 2"
+.tablerow table=5 row=0 oo=1
+.tablerow table=5 row=1 oo=0
+.funcs size=11
+.func func=0 name=F0 args=0 formula=2
+.func func=1 name=F0_1 args=0 formula=3
+.func func=2 name=F1 args=0 formula=4
+.func func=3 name=F2 args=0 formula=5
+.func func=4 name=F3 args=0 formula=6
+.func func=5 name=F4 args=0 formula=7
+.func func=6 name=F5 args=0 formula=8
+.func func=7 name=F6 args=0 formula=9
+.func func=8 name=F7 args=0 formula=10
+.func func=9 name=F8 args=0 formula=11
+.func func=10 name=$VERSION args=0 formula=12
+.inputcalcids size=16
+.inputcalcid icalc=0 name=DEFAULT
+.inputcalcid icalc=1 name=INFO
+.inputcalcid icalc=2 name=CHECK
+.inputcalcid icalc=3 name=MYNAME1
+.inputcalcid icalc=4 name=MYNAME2
+.inputcalcid icalc=5 name=MYNAME3
+.inputcalcid icalc=6 name=MYNAME4
+.inputcalcid icalc=7 name=NAME
+.inputcalcid icalc=8 name=THISNAME
+.inputcalcid icalc=9 name=OTHERNAME
+.inputcalcid icalc=10 name=REALNAME
+.inputcalcid icalc=11 name=TABLE
+.inputcalcid icalc=12 name=FILTER
+.inputcalcid icalc=13 name=DISPLAY
+.inputcalcid icalc=14 name=DISPLAYTEXT
+.inputcalcid icalc=15 name=VECTOR
+.inputs size=18
+.input input=0 name=I0 autocounters=0 choiceable=false
+.inputcalc input=0 icalc=0 formula=13 ;DEFAULT
+.inputcalc input=0 icalc=1 formula=14 ;INFO
+.input input=1 name=I1 autocounters=0 choiceable=false
+.inputcalc input=1 icalc=2 formula=15 ;CHECK
+.input input=2 name=I2 autocounters=0 choiceable=false
+.inputcalc input=2 icalc=2 formula=16 ;CHECK
+.input input=3 name=I3 autocounters=0 choiceable=false
+.inputcalc input=3 icalc=2 formula=17 ;CHECK
+.input input=4 name=I4 autocounters=0 choiceable=false
+.inputcalc input=4 icalc=2 formula=18 ;CHECK
+.inputcalc input=4 icalc=1 formula=19 ;INFO
+.input input=5 name=I5 autocounters=0 choiceable=false
+.input input=6 name=I6 autocounters=0 choiceable=false
+.inputcalc input=6 icalc=3 formula=20 ;MYNAME1
+.inputcalc input=6 icalc=4 formula=21 ;MYNAME2
+.inputcalc input=6 icalc=5 formula=22 ;MYNAME3
+.inputcalc input=6 icalc=6 formula=23 ;MYNAME4
+.input input=7 name=I7 autocounters=0 choiceable=false
+.inputcalc input=7 icalc=7 formula=24 ;NAME
+.inputcalc input=7 icalc=8 formula=25 ;THISNAME
+.input input=8 name=I8 autocounters=0 choiceable=false
+.inputcalc input=8 icalc=7 formula=26 ;NAME
+.inputcalc input=8 icalc=9 formula=27 ;OTHERNAME
+.inputcalc input=8 icalc=10 formula=28 ;REALNAME
+.input input=9 name=I9 autocounters=0 choiceable=true
+.inputcalc input=9 icalc=11 formula=29 ;TABLE
+.input input=10 name=I10 autocounters=0 choiceable=true
+.inputcalc input=10 icalc=11 formula=30 ;TABLE
+.inputcalc input=10 icalc=12 formula=31 ;FILTER
+.input input=11 name=I11 autocounters=0 choiceable=true
+.inputcalc input=11 icalc=11 formula=32 ;TABLE
+.inputcalc input=11 icalc=13 formula=33 ;DISPLAY
+.input input=12 name=I12 autocounters=0 choiceable=true
+.inputcalc input=12 icalc=11 formula=34 ;TABLE
+.inputcalc input=12 icalc=14 formula=35 ;DISPLAYTEXT
+.input input=13 name=I13 autocounters=0 choiceable=true
+.inputcalc input=13 icalc=11 formula=36 ;TABLE
+.inputcalc input=13 icalc=13 formula=37 ;DISPLAY
+.inputcalc input=13 icalc=14 formula=38 ;DISPLAYTEXT
+.input input=14 name=I14 autocounters=0 choiceable=true
+.inputcalc input=14 icalc=11 formula=39 ;TABLE
+.inputcalc input=14 icalc=15 formula=40 ;VECTOR
+.input input=15 name=I15 autocounters=0 choiceable=true
+.inputcalc input=15 icalc=15 formula=41 ;VECTOR
+.inputcalc input=15 icalc=12 formula=42 ;FILTER
+.input input=16 name=I16 autocounters=0 choiceable=true
+.inputcalc input=16 icalc=15 formula=43 ;VECTOR
+.input input=17 name=I17 autocounters=0 choiceable=true
+.inputcalc input=17 icalc=15 formula=44 ;VECTOR
+.formulas size=45
+.formula formula=0 simple=true
+   ; argument 0: arguments_list
+   ; argument 1: nodeid
+   ; argument 2: calcid
+   ; argument 3: nr of parameters
+   ; argument 4: selfcall (0/1)
+   ; argument 5: result
+   ; localvar 6: formulaid_inclusion
+   ; localvar 7: formulaid_times
+   ; localvar 8: children_num
+   ; localvar 9: children_ind
+   ; localvar 10: times
+   ; localvar 11: timescounter
+   ; localvar 12: timesid
+   ; localvar 13: formulaid for node-calc
+   ; localvar 14: subnodeid
+   : load 4 //selfcall
+   : iffalse L1
+   : load 1 //nodeid
+   : load 2 //calcid
+   : tree_nodecalcown
+   : iffalse L1
+   : load 1 //nodeid
+   : tree_nodeformulainc //formulaid
+   : dup //formulaid_inclusion formulaid_inclusion
+   : store 6 //formulaid_inclusion
+   : ifnull L2 //jump if formulaid_inclusion<0
+   : load 7 //formulaid_inclusion
+   : pushconst0 //nargs=0
+   : createlist0 //parameters (empty list)
+   : callformuladyn //call inclusion formula
+   : iftrue L2
+   ; node is not included -> do not append anything
+   : load 5
+   : return
+ L2: //calc in own node, node is included
+   : load 1 //nodeid
+   : tree_nodeformulatimes //formulaid_times
+   : dup //formulaid_times formulaid_times
+   : store 7 //formulaid_times
+   : ifnull L3 //if no formulaid_times -> no times-counter
+   : load 7 //formulaid_times
+   : pushconst0 //formulaid_times 0; no parameters
+   : createlist0 //formulaid_times 0 []; parameters (empty list)
+   : callformuladyn //times
+   : dup //times times
+   : pushconst0 //times times 0
+   : ifsmleq L7 //times; counter<=0 -> return null
+   : store 10 //store times
+   : load 1 //nodeid
+   : tree_nodetimesid //timesid
+   : store 12 //store timesid
+   // init times counter in local var and on times-stack
+   : pushconst0 //init timescounter
+   : store 11   //init timescounter
+   : load 12 //timesid
+   : times_push
+   // get and store formulaid
+   : load 1 //nodeid
+   : load 2 //calcid
+   : tree_nodecalcformula //formulaid
+   : store 13
+   : load 5 //result
+ L8: // start of loop over times .. calc in own node, node is included, we have a multiple-counter
+   ; action: compute and add to result
+   : load 13 //result formulaid
+   : load 3 //result formulaid nargs
+   : load 0 //result formulaid nargs args_list
+   : callformuladyn //result newvalue
+   : listappendelem1 //result
+   : times_inctop
+   : load 11 //result timescounter
+   : pushconst1 //result timescounter 1
+   : add //result timescounter+1
+   : dup //result timescounter+1 timescounter+1
+   : store 11 //result timescounter+1
+   : load 10 //result timescounter+1 times
+   : ifsml L8
+   : times_pop
+   : return
+ L3: //calc in own node, node is included, no multiple-counter
+   : load 5 //result
+   : load 1 //nodeid
+   : load 2 //calcid
+   : tree_nodecalcformula //formulaid
+   : load 3 //formulaid nargs
+   : load 0 //formulaid nargs args_list
+   : callformuladyn //result newvalue
+   : listappendelem1 //result
+   : return
+ L1: //not defined in own node -> check if in child nodes
+   : load 1 //nodeid
+   : load 2 //calcid
+   : tree_nodecalctotal
+   : iftrue L6
+     //not in child nodes -> return result unchanged
+   : load 5
+   : return
+ L6: //defined in child nodes
+   ; check if the node is included
+   : load 1 //nodeid
+   : tree_nodeformulainc //formulaid
+   : dup //formulaid_inclusion formulaid_inclusion
+   : store 6 //formulaid_inclusion
+   : ifnull L61 //jump if formulaid_inclusion<0
+   : load 6 //formulaid_inclusion
+   : pushconst0 //nargs=0
+   : createlist0 //parameters (empty list)
+   : callformuladyn //call inclusion formula
+   : iftrue L61
+   ; node is not included -> return 'null'
+   : pushnull
+   : return
+L61: //defined in child nodes, and child node is included
+   : load 1 //nodeid
+   : tree_subnodes_counter //numchilds
+   : dup //numchilds numchilds
+   : ifzero L7 //numchilds; if no children -> return null
+   : store 8 //store numchilds; --
+   : pushconst0 //init indchild
+   : store 9
+   ; check times
+   : load 1 //nodeid
+   : tree_nodeformulatimes //formulaid_times
+   : dup //formulaid_times formulaid_times
+   : store 7 //formulaid_times
+   : ifnull L40 //if no formulaid_times -> no times-counter
+   : load 7 //formulaid_times
+   : pushconst0 //formulaid_times 0; no parameters
+   : createlist0 //formulaid_times 0 []; parameters (empty list)
+   : callformuladyn //times
+   : dup //times times
+   : pushconst0 //times times 0
+   : ifsmleq L7 //times; counter<=0 -> return null
+   ; setup times-counter
+   : store 10 //store times
+   : load 1 //nodeid
+   : tree_nodetimesid //timesid
+   : store 12 //store timesid
+     // sum from children, we have times-counter -> outer loop over children, inner loop over times-counter
+ L9: ;outer loop over children begin
+   ; get subnode-id
+   : load 1 //nodeid
+   : load 9 //nodeid indchild
+   : tree_subnodes_get //subnodeid
+   : store 14 //store subnodeid
+   // init times counter in local var and on times-stack
+   : pushconst0 //init timescounter
+   : store 11   //init timescounter
+   : load 12 //timesid
+   : times_push
+ LA: //begin of inner loop over times
+   : load 0; argument 0: arguments_list
+   : load 14; argument 1: nodeid
+   : load 2; argument 2: calcid
+   : load 3; argument 3: nr of parameters
+   : pushconst1; argument 4: selfcall (0/1)
+   : load 5; argument 5: result
+   : callformula 0 6 //recursive call -- newvalue
+   : pop //result newvalue -- result; value was already appended to result list
+   //increment and check times
+   : times_inctop
+   : load 11 //result timescounter
+   : pushconst1 //result timescounter 1
+   : add //result timescounter+1
+   : dup //result timescounter+1 timescounter+1
+   : store 11 //result timescounter+1
+   : load 10 //result timescounter+1 times
+   : ifsml LA
+   : times_pop
+   // increment and check current child
+   : load 9 //result indchild
+   : pushconst1 //result indchild 1
+   : add //result indchild+1
+   : dup //result indchild+1 indchild+1
+   : store 9 //result indchild+1
+   : load 8 //result indchild+1 numchilds
+   : ifsml L9 //result
+   : load 5
+   : return
+L40: //sum from children, we are included and have no times-counter
+L41: ;loop over children begin
+   : load 0; argument 0: arguments_list
+   ; push arguments for tree_subnodes_get
+   : load 1 //nodeid
+   : load 9 //indchild
+   : tree_subnodes_get //argument 1: nodeid of child
+   : load 2; argument 2: calcid
+   : load 3; argument 3: nr of parameters
+   : pushconst1; argument 4: selfcall (0/1)
+   : load 5; argument 5: result
+   : callformula 0 6 //recursive call -- newvalue
+   : pop //newvalue already appended to the list
+   // increment and check current child
+   : load 9 //result indchild
+   : pushconst1 //result indchild 1
+   : add //result indchild+1
+   : dup //result indchild+1 indchild+1
+   : store 9 //result indchild+1
+   : load 8 //result indchild+1 numchilds
+   : ifsml L41 //result
+   : load 5
+   : return
+ L7: //no children or times-counter<=0 -> return result unchanged
+   : load 5
+   : return
+.formuladone
+.formula formula=1 simple=true
+   ; argument 0: arguments_list
+   ; argument 1: nodeid
+   ; argument 2: calcid
+   ; argument 3: nr of parameters
+   ; argument 4: selfcall (0/1)
+   ; localvar 5: formulaid_inclusion
+   ; localvar 6: formulaid_times
+   ; localvar 7: children_num
+   ; localvar 8: children_ind
+   ; localvar 9: times
+   ; localvar 10: timescounter
+   ; localvar 11: timesid
+   ; localvar 12: formulaid for node-calc
+   ; localvar 13: subnodeid
+   : load 4 //selfcall
+   : iffalse L1
+   : load 1 //nodeid
+   : load 2 //calcid
+   : tree_nodecalcown
+   : iffalse L1
+   : load 1 //nodeid
+   : tree_nodeformulainc //formulaid
+   : dup //formulaid_inclusion formulaid_inclusion
+   : store 5 //formulaid_inclusion
+   : ifnull L2 //jump if formulaid_inclusion<0
+   : load 5 //formulaid_inclusion
+   : pushconst0 //nargs=0
+   : createlist0 //parameters (empty list)
+   : callformuladyn //call inclusion formula
+   : iftrue L2
+   ; node is not included -> return 'null'
+   : pushnull
+   : return
+ L2: //calc in own node, node is included
+   : load 1 //nodeid
+   : tree_nodeformulatimes //formulaid_times
+   : dup //formulaid_times formulaid_times
+   : store 6 //formulaid_times
+   : ifnull L3 //if no formulaid_times -> no times-counter
+   : load 6 //formulaid_times
+   : pushconst0 //formulaid_times 0; no parameters
+   : createlist0 //formulaid_times 0 []; parameters (empty list)
+   : callformuladyn //times
+   : dup //times times
+   : pushconst0 //times times 0
+   : ifsmleq L7 //times; counter<=0 -> return null
+   : store 9 //store times
+   : load 1 //nodeid
+   : tree_nodetimesid //timesid
+   : store 11 //store timesid
+   // init times counter in local var and on times-stack
+   : pushconst0 //init timescounter
+   : store 10   //init timescounter
+   : load 11 //timesid
+   : times_push
+   // get and store formulaid
+   : load 1 //nodeid
+   : load 2 //calcid
+   : tree_nodecalcformula //formulaid
+   : store 12
+   : pushnull //result
+ L8: // start of loop over times .. calc in own node, node is included, we have a multiple-counter
+   ; action: compute and add to result
+   : load 12 //result formulaid
+   : load 3 //result formulaid nargs
+   : load 0 //result formulaid nargs args_list
+   : callformuladyn //result newvalue
+   : addnotnull //result
+   : times_inctop
+   : load 10 //result timescounter
+   : pushconst1 //result timescounter 1
+   : add //result timescounter+1
+   : dup //result timescounter+1 timescounter+1
+   : store 10 //result timescounter+1
+   : load 9 //result timescounter+1 times
+   : ifsml L8
+   : times_pop
+   : return
+ L3: //calc in own node, node is included, no multiple-counter
+   : load 1 //nodeid
+   : load 2 //calcid
+   : tree_nodecalcformula //formulaid
+   : load 3 //formulaid nargs
+   : load 0 //formulaid nargs args_list
+   : callformuladyn //result
+   : return
+ L1: //not defined in own node -> check if in child nodes
+   : load 1 //nodeid
+   : load 2 //calcid
+   : tree_nodecalctotal
+   : iftrue L6
+     //not in child nodes -> return null
+   : pushnull
+   : return
+ L6: //defined in child nodes
+   ; check if the node is included
+   : load 1 //nodeid
+   : tree_nodeformulainc //formulaid
+   : dup //formulaid_inclusion formulaid_inclusion
+   : store 5 //formulaid_inclusion
+   : ifnull L61 //jump if formulaid_inclusion<0
+   : load 5 //formulaid_inclusion
+   : pushconst0 //nargs=0
+   : createlist0 //parameters (empty list)
+   : callformuladyn //call inclusion formula
+   : iftrue L61
+   ; node is not included -> return 'null'
+   : pushnull
+   : return
+L61: //sum from subnodes, the node is included
+   : load 1 //nodeid
+   : tree_subnodes_counter //numchilds
+   : dup //numchilds numchilds
+   : ifzero L7 //numchilds; if no children -> return null
+   : store 7 //store numchilds; --
+   : pushconst0 //init indchild
+   : store 8
+   ; check times
+   : load 1 //nodeid
+   : tree_nodeformulatimes //formulaid_times
+   : dup //formulaid_times formulaid_times
+   : store 6 //formulaid_times
+   : ifnull L40 //if no formulaid_times -> no times-counter
+   : load 6 //formulaid_times
+   : pushconst0 //formulaid_times 0; no parameters
+   : createlist0 //formulaid_times 0 []; parameters (empty list)
+   : callformuladyn //times
+   : dup //times times
+   : pushconst0 //times times 0
+   : ifsmleq L7 //times; counter<=0 -> return null
+   ; setup times-counter
+   : store 9 //store times
+   : load 1 //nodeid
+   : tree_nodetimesid //timesid
+   : store 11 //store timesid
+     // sum from children, we have times-counter -> outer loop over children, inner loop over times-counter
+   : pushnull //result
+ L9: ;outer loop over children begin
+   ; get subnode-id
+   : load 1 //nodeid
+   : load 8 //nodeid indchild
+   : tree_subnodes_get //subnodeid
+   : store 13 //store subnodeid
+   // init times counter in local var and on times-stack
+   : pushconst0 //init timescounter
+   : store 10   //init timescounter
+   : load 11 //timesid
+   : times_push
+ LA: //begin of inner loop over times
+   : load 0; argument 0: arguments_list
+   : load 13; argument 1: nodeid
+   : load 2; argument 2: calcid
+   : load 3; argument 3: nr of parameters
+   : pushconst1; argument 4: selfcall (0/1)
+   : callformula 1 5 //recursive call -- result newvalue
+   : addnotnull //add result -- result
+   //increment and check times
+   : times_inctop
+   : load 10 //result timescounter
+   : pushconst1 //result timescounter 1
+   : add //result timescounter+1
+   : dup //result timescounter+1 timescounter+1
+   : store 10 //result timescounter+1
+   : load 9 //result timescounter+1 times
+   : ifsml LA
+   : times_pop
+   // increment and check current child
+   : load 8 //result indchild
+   : pushconst1 //result indchild 1
+   : add //result indchild+1
+   : dup //result indchild+1 indchild+1
+   : store 8 //result indchild+1
+   : load 7 //result indchild+1 numchilds
+   : ifsml L9 //result
+   : return
+L40: //sum from children, we are included and have no times-counter
+   : pushnull
+L41: ;loop over children begin
+   : load 0; argument 0: arguments_list
+   ; push arguments for tree_subnodes_get
+   : load 1 //nodeid
+   : load 8 //indchild
+   : tree_subnodes_get //argument 1: nodeid of child
+   : load 2; argument 2: calcid
+   : load 3; argument 3: nr of parameters
+   : pushconst1; argument 4: selfcall (0/1)
+   : callformula 1 5 //recursive call -- result newvalue
+   : addnotnull //add result -- result
+   // increment and check current child
+   : load 8 //result indchild
+   : pushconst1 //result indchild 1
+   : add //result indchild+1
+   : dup //result indchild+1 indchild+1
+   : store 8 //result indchild+1
+   : load 7 //result indchild+1 numchilds
+   : ifsml L41 //result
+   : return
+ L7: //no children or times-counter<=0 -> return null
+   : pushnull
+   : return
+.formuladone
+.formula formula=2 simple=false ; line 5
+   : getinput0 0 ; I0
+   : pushconst 1
+   : getinput 0 1 ; I0
+   : getinputcalc0 0 1 ; I0.INFO
+   : pushconst 1
+   : getinputcalc 0 1 1 ; I0.INFO
+   : builtin 53 4 ; LIST
+   : builtin 71 1 ; V_STRINGX
+   : return
+.formuladone
+.formula formula=3 simple=true ; line 11
+   : getinputraw0 0 ; I0.UNCHECKED
+   : return
+.formuladone
+.formula formula=4 simple=false ; line 16
+   : getinput0 1 ; I1
+   : pushconst 0
+   : getinput 1 1 ; I1
+   : pushconst 1
+   : getinput 1 1 ; I1
+   : getinputcalc0 1 2 ; I1.CHECK
+   : pushconst 1
+   : getinputcalc 1 2 1 ; I1.CHECK
+   : builtin 53 5 ; LIST
+   : builtin 71 1 ; V_STRINGX
+   : return
+.formuladone
+.formula formula=5 simple=false ; line 27
+   : pushconst 5
+   : getinput 2 1 ; I2
+   : pushconst 4
+   : getinput 2 1 ; I2
+   : getinput0 2 ; I2
+   : builtin 53 3 ; LIST
+   : builtin 71 1 ; V_STRINGX
+   : return
+.formuladone
+.formula formula=6 simple=false ; line 36
+   : pushconst 5
+   : getinput 3 1 ; I3
+   : getinput0 3 ; I3
+   : pushconst 1
+   : unminus
+   : getinput 3 1 ; I3
+   : builtin 53 3 ; LIST
+   : builtin 71 1 ; V_STRINGX
+   : return
+.formuladone
+.formula formula=7 simple=false ; line 46
+   : pushconst 4
+   : getinput 4 1 ; I4
+   : getinput0 4 ; I4
+   : pushconst 4
+   : getinputcalc 4 1 1 ; I4.INFO
+   : getinputcalc0 4 1 ; I4.INFO
+   : builtin 53 4 ; LIST
+   : builtin 71 1 ; V_STRINGX
+   : return
+.formuladone
+.formula formula=8 simple=false ; line 54
+   : getinput0 5 ; I5
+   : pushconst 0
+   : getinput 5 1 ; I5
+   : pushconst 0
+   : pushconst 0
+   : pushconst 0
+   : getinput 5 3 ; I5
+   : pushconst 0
+   : pushconst 0
+   : pushconst 0
+   : pushconst 1
+   : getinput 5 4 ; I5
+   : pushconst 1
+   : pushconst 0
+   : pushconst 0
+   : getinput 5 3 ; I5
+   : pushconst 1
+   : getinput 5 1 ; I5
+   : getinputraw0 5 ; I5.UNCHECKED
+   : pushconst 5
+   : getinputraw 5 1 ; I5.UNCHECKED
+   : builtin 53 8 ; LIST
+   : builtin 71 1 ; V_STRINGX
+   : return
+.formuladone
+.formula formula=9 simple=true ; line 72
+   : getinputcalc0 6 3 ; I6.MYNAME1
+   : pushconst ";"
+   : sappend
+   : getinputcalc0 6 4 ; I6.MYNAME2
+   : sappend
+   : pushconst ";"
+   : sappend
+   : getinputcalc0 6 5 ; I6.MYNAME3
+   : sappend
+   : pushconst ";"
+   : sappend
+   : getinputcalc0 6 6 ; I6.MYNAME4
+   : sappend
+   : pushconst " should all be I6"
+   : sappend
+   : return
+.formuladone
+.formula formula=10 simple=true ; line 79
+   : getinputcalc0 7 7 ; I7.NAME
+   : pushconst ";"
+   : sappend
+   : getinputcalc0 7 8 ; I7.THISNAME
+   : sappend
+   : pushconst " should be 'abc;I7'"
+   : sappend
+   : return
+.formuladone
+.formula formula=11 simple=true ; line 87
+   : getinputcalc0 8 7 ; I8.NAME
+   : pushconst ";"
+   : sappend
+   : getinputcalc0 8 9 ; I8.OTHERNAME
+   : sappend
+   : pushconst ";"
+   : sappend
+   : getinputcalc0 8 10 ; I8.REALNAME
+   : sappend
+   : pushconst " should be name=i8 hardcoded;abc;i8"
+   : sappend
+   : return
+.formuladone
+.formula formula=12 simple=true ; line 0
+   : pushconst "TcGen 23.05.2012 10:24:01"
+   : return
+.formuladone
+.formula formula=13 simple=true ; line 2
+   : pushconst 1
+   : return
+.formuladone
+.formula formula=14 simple=true ; line 3
+   : getinput0 0 ; I0
+   : return
+.formuladone
+.formula formula=15 simple=true ; line 14
+   : load 0 //index
+   : getinputrawself 1 ; I1
+   : pushconst 2
+   : mult
+   : return
+.formuladone
+.formula formula=16 simple=false ; line 25
+   //start of if statement, line 25
+   : load 0 ; INDEX
+   : pushconst 5
+   : eq
+   : iffalse L0
+   : pushconst 4
+   : getinputraw 2 1 ; I2.UNCHECKED
+   : pushconst 2
+   : mult
+   : goto L1
+ L0:
+   : pushconst 45
+ L1:
+   //end of if statement
+   : return
+.formuladone
+.formula formula=17 simple=false ; line 34
+   //start of if statement, line 34
+   : load 0 ; INDEX
+   : pushconst 0
+   : cmpbig
+   : iffalse L0
+   : load 0 ; INDEX
+   : load 0 ; INDEX
+   : pushconst 1
+   : sub
+   : getinputraw 3 1 ; I3.UNCHECKED
+   : mult
+   : goto L1
+ L0:
+   : pushconst 1
+ L1:
+   //end of if statement
+   : return
+.formuladone
+.formula formula=18 simple=true ; line 43
+   : load 0 //index
+   : getinputrawself 4 ; I4
+   : return
+.formuladone
+.formula formula=19 simple=true ; line 44
+   : getinput0 4 ; I4
+   : return
+.formuladone
+.formula formula=20 simple=true ; line 0
+   : pushconst "I6"
+   : return
+.formuladone
+.formula formula=21 simple=true ; line 0
+   : pushconst "I6"
+   : return
+.formuladone
+.formula formula=22 simple=true ; line 0
+   : pushconst "I6"
+   : return
+.formuladone
+.formula formula=23 simple=true ; line 0
+   : pushconst "I6"
+   : return
+.formuladone
+.formula formula=24 simple=true ; line 75
+   : pushconst "abc"
+   : return
+.formuladone
+.formula formula=25 simple=true ; line 0
+   : pushconst "I7"
+   : return
+.formuladone
+.formula formula=26 simple=true ; line 82
+   : pushconst "name=i8 hardcoded!"
+   : return
+.formuladone
+.formula formula=27 simple=true ; line 83
+   : getinputcalc0 7 7 ; I7.NAME
+   : return
+.formuladone
+.formula formula=28 simple=true ; line 0
+   : pushconst "i8"
+   : return
+.formuladone
+.formula formula=29 simple=true ; line 90
+   : pushconst "T9"
+   : return
+.formuladone
+.formula formula=30 simple=true ; line 94
+   : pushconst "T10"
+   : return
+.formuladone
+.formula formula=31 simple=true ; line 95
+   : load 2 ; KEY
+   : pushconst 1
+   : cmpbig
+   : return
+.formuladone
+.formula formula=32 simple=true ; line 99
+   : pushconst "T11"
+   : return
+.formuladone
+.formula formula=33 simple=true ; line 100
+   : pushconst "text"
+   : return
+.formuladone
+.formula formula=34 simple=true ; line 103
+   : pushconst "T12"
+   : return
+.formuladone
+.formula formula=35 simple=true ; line 104
+   : pushconst "key="
+   : load 2 ; KEY
+   : sappend
+   : pushconst ",text="
+   : sappend
+   : load 3 ; TEXT
+   : sappend
+   : return
+.formuladone
+.formula formula=36 simple=true ; line 107
+   : pushconst "T13"
+   : return
+.formuladone
+.formula formula=37 simple=true ; line 108
+   : pushconst "text"
+   : return
+.formuladone
+.formula formula=38 simple=true ; line 109
+   : pushconst "key="
+   : load 2 ; KEY
+   : sappend
+   : pushconst ",text="
+   : sappend
+   : load 3 ; TEXT
+   : sappend
+   : return
+.formuladone
+.formula formula=39 simple=true ; line 112
+   : pushconst "T14"
+   : return
+.formuladone
+.formula formula=40 simple=false ; line 113
+   : pushconst 1
+   : pushconst 111
+   : builtin 53 2 ; LIST
+   : pushconst 2
+   : pushconst 222
+   : builtin 53 2 ; LIST
+   : builtin 53 2 ; LIST
+   : return
+.formuladone
+.formula formula=41 simple=false ; line 116
+   : pushconst 1
+   : pushconst 111
+   : builtin 53 2 ; LIST
+   : pushconst 2
+   : pushconst 222
+   : builtin 53 2 ; LIST
+   : builtin 53 2 ; LIST
+   : return
+.formuladone
+.formula formula=42 simple=true ; line 117
+   : load 2 ; KEY
+   : pushconst 1
+   : cmpbig
+   : return
+.formuladone
+.formula formula=43 simple=false ; line 120
+   : pushconst 1
+   : pushconst "key 1"
+   : builtin 53 2 ; LIST
+   : pushconst 2
+   : pushconst "key 2"
+   : builtin 53 2 ; LIST
+   : builtin 53 2 ; LIST
+   : return
+.formuladone
+.formula formula=44 simple=false ; line 123
+   : pushconst 1
+   : pushconst "key 1"
+   : pushconst "irgendwas1"
+   : builtin 53 3 ; LIST
+   : pushconst 2
+   : pushconst "key 2"
+   : pushconst "irgendwas 2"
+   : builtin 53 3 ; LIST
+   : builtin 53 2 ; LIST
+   : return
+.formuladone
