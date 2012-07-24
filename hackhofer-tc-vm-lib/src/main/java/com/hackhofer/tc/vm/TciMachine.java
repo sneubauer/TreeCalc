@@ -2,6 +2,8 @@ package com.hackhofer.tc.vm;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.util.ArrayList;
@@ -161,7 +163,8 @@ public final class TciMachine implements S {
 	public static final byte INSTR_UNPLUS                         = 0x78 ;
 	public static final byte INSTR_XOR                            = 0x79 ;
 
-	private final Asm asm;
+	public final Asm asm;
+	private int maxcachesize = 2000;
 	
 	/* "static" name mapping for a module */
 	private HashMap<String,Integer> in; //input names -> index
@@ -178,15 +181,140 @@ public final class TciMachine implements S {
     
     /* virtual maschine stacks and state */
 	private V[] stack = new V[65536];
-	private int[] callstack = new int[65536];
+	private long[] callstack = new long[65536];
 	private Object[] keystack = new Object[8192];
-	
-	
+
 	/* V-constants for speedup */
 	private V[] vconstants;
     
-    public TciMachine(final Asm asm) {
-		this.asm = asm;
+	/* profiling information */
+	public ProfilingData profilingData;
+	public class ProfilingData {
+		private final int size;
+		private final ProfilingFormula[] profilingFormulaArr;
+		private final long[] timesFormula;
+		public ProfilingData(int size) {
+			this.size = size;
+			this.profilingFormulaArr = new ProfilingFormula[size];
+			this.timesFormula = new long[size];
+		}
+		public ProfilingFormula getProfilingFormula(int formulaid) {
+			ProfilingFormula prof = profilingFormulaArr[formulaid];
+			if (prof==null) {
+				prof = new ProfilingFormula(this, asm.formulaSimple[formulaid]);
+				profilingFormulaArr[formulaid] = prof;
+			}
+			return prof;
+		}
+		
+		@Override 
+		public String toString() {
+			StringBuffer s = new StringBuffer(4096);
+			s.append("formulaid;simple;memactive;counter;time;cachelookup;cachehit;cachehitratio\n");
+			for (int i=0; i<size; i++) {
+				ProfilingFormula prof = profilingFormulaArr[i];
+				if (prof==null) {
+					continue;
+				}
+				int onecounter = prof.counterTotal;
+				long onetime = prof.timetotal;
+				int cacheSearch = prof.cacheTotalLookup;
+				int cacheHit = prof.cacheTotalHit;
+				int cacheMisses = cacheSearch - cacheHit;
+				BigDecimal cacheRatio = BigDecimal.ZERO;
+				if (cacheSearch>0) {
+					cacheRatio = BigDecimal.valueOf(cacheHit).divide(BigDecimal.valueOf(cacheSearch),  2,  RoundingMode.HALF_UP); 
+				}
+				if (onecounter>0) {
+					s.append(i + ";" + asm.formulaSimple[i] + ";" + prof.memoactive + ";" + onecounter + ";" + onetime 
+							+ ";" + cacheSearch + ";" + cacheHit + ";" + cacheRatio + ";" 
+							+ "\n");
+				}
+			}
+			return s.toString();
+		}
+	}
+	public String getStatistics() {
+		return this.profilingData.toString();
+	}
+	public static class ProfilingFormula {
+		private final ProfilingData profData;
+		public ProfilingFormula(ProfilingData profData, boolean issimple) {
+			this.profData = profData;
+			this.issimple = issimple;
+			this.memoactive = true; //!issimple;
+		}
+		private boolean issimple;
+		private boolean memoactive;
+		private int  counter;
+		private int  counterTotal;
+		private long time;
+		private long timetotal;
+		private int  cacheLookup;
+		private int  cacheWrite;
+		private int  cacheHit;
+		private int  cacheTotalLookup;
+		private int  cacheTotalWrite;
+		private int  cacheTotalHit;
+		private int  topcsp=-1;
+		
+		public void incCounter() {
+			this.counter++;
+			this.counterTotal++;
+		}
+		public  long startTimer(int csp) {
+			long timecurrent = System.currentTimeMillis();
+			if (topcsp==-1) {
+				topcsp = csp;
+				time -= timecurrent;
+				timetotal -= timecurrent;
+			}
+			return timecurrent;
+		}
+		public long endTimer(int csp) {
+			long timecurrent = System.currentTimeMillis();
+			if (csp==topcsp) {
+				time += timecurrent;
+				timetotal += timecurrent;
+				topcsp=-1;
+			}
+			return timecurrent;
+		}
+		public void reset() {
+			/* reset everything but not the total fields */
+			this.counter=0;
+//			this.time=0; //does not work because of recursive calls 
+			this.cacheLookup=0;
+			this.cacheWrite=0;
+			this.cacheHit=0;
+		}
+		public void cacheHit() {
+			this.cacheHit++;
+			this.cacheTotalHit++;
+		}
+		public void cacheLookup() {
+			this.cacheLookup++;
+			this.cacheTotalLookup++;
+		}
+		public void cacheWrite() {
+			this.cacheWrite++;
+			this.cacheTotalWrite++;
+		}
+	}
+//	private ThreadMXBean threadMx;
+//	threadMx = ManagementFactory.getThreadMXBean();
+//	threadMx.getCurrentThreadCpuTime();
+//	System.nanoTime();
+	
+	
+	public TciMachine(final Asm asm) {
+		this(asm, -1);
+	}
+	public TciMachine(final Asm asm, int maxcachesize) {
+    	this.asm = asm;
+    	if (maxcachesize > 0) {
+    		this.maxcachesize = maxcachesize;
+    	}
 		
 		/* initialize 0d input */
 		int inputsize = asm.inputs.length;
@@ -251,6 +379,11 @@ public final class TciMachine implements S {
 			Table table = tables[i];
 			tn.put(table.name, i);
 		}
+//		for (int i=0; i<asm.formulaOffset.length; i++) {
+//			asm.formulaSimple[i] = false;
+//		}
+		/* profiling */
+		profilingData = new ProfilingData(asm.formulaOffset.length);
 	}
 
 	/**
@@ -1051,16 +1184,18 @@ public final class TciMachine implements S {
 
 	private static class LruCache<Key,Value> extends LinkedHashMap<Key, Value> {
 		private static final long serialVersionUID = 1L;
-		public LruCache(int initialCapacity, float loadFactor) {
-			super(initialCapacity, loadFactor, true);
+		private final int lrucachesize;
+		public LruCache(int lrucachesize, float loadFactor) {
+			super((int) Math.ceil(lrucachesize / loadFactor) * 2, loadFactor, true);
+			this.lrucachesize = lrucachesize;
 		}
 		protected boolean removeEldestEntry(Map.Entry<Key, Value> eldest) {
-			return size() > 20000;
+			return size() > lrucachesize;
 		}
 	}
 
 	private void initCache() {
-		cache = new LruCache<Object,V>(100000, 0.5f);
+		cache = new LruCache<Object,V>(maxcachesize, 0.5f);
 		cacheEmpty = true;
 	}
 
@@ -1700,7 +1835,7 @@ public final class TciMachine implements S {
 		int nargs = calc.nargs;
 		if (nargs!=args.length) {
 			throw new RuntimeException("Calc " + calc.name + " expects " + nargs + " arguments, but got just " + args.length + ", please check the interface call.");
-		}
+		}                 
 		int nodeid = calc.rootaccessNode;
 		if (calc.rootaccessSum) {
 //			V[] a = new V[5];
@@ -1794,13 +1929,13 @@ public final class TciMachine implements S {
 
 		final byte[] bytecode = asm.bytecode; 
 		final V[] stack = this.stack;
-		final int[] callstack = this.callstack;
+		final long[] callstack = this.callstack;
 		final Object[] keystack = this.keystack;
 		final Object[] constants = this.asm.constants;
 		final V[] vconstants = this.vconstants;
 		final Node[] nodes = this.asm.nodes;
 		final int[][] edges = this.asm.edges;
-		V ret;
+		V ret = null;
 		double right;
 		double left;
 		
@@ -1815,7 +1950,9 @@ public final class TciMachine implements S {
 //		callstack[0] = -1; //pc
 //		callstack[1] = 0; //bp
 //		callstack[2] = -1; //funcid
-//		csp += 3; 
+//		callstack[3] = 0 (no caching), 1 (caching)0; //runtime
+//      callstack[4] = 0 //runtime in ms
+//		csp += 5; 
 //		ksp += 1;
 		
 		for (;;) { //interpreter loop
@@ -1856,6 +1993,12 @@ public final class TciMachine implements S {
 				System.out.print(Arrays.toString(Arrays.copyOf(keystack, ksp+1)));
 				System.out.println();
 			}
+
+			/* calling a formula put outside switch ... here we have the data to be set to trigger the call */
+			int call_formulaid=-1; //<0: do not call
+			int call_bp = 0;
+			int call_nargs = 0; //<0: call_args has to be normalized after caching
+			V[] call_args = null;
 			
 			/* dispatch */
 			switch(instrid) {
@@ -2219,214 +2362,41 @@ public final class TciMachine implements S {
 				break; // end of builtin
 			case INSTR_CALLDYNFUNC                 : { //"nargs", OPTYPE_BYTE) //arg1 ... arg_nargs funcref -- result 
 				Func func = asm.funcs[stack[sp].funcrefValue()];
+				stack[sp--] = null; //get rid of funcref
 				int formulaid = func.formula;
-				if (asm.formulaSimple[formulaid])  {
-					stack[sp--] = null; //get rid of funcref
-					callstack[csp] = pc;
-					callstack[csp+1] = bp;
-					callstack[csp+2] = formulaid;
-					csp += 3;
-					bp = sp - op1 + 1;
-					pc = asm.formulaOffset[formulaid];
-					sp = bp + asm.formulaMaxvar[formulaid] - 1;
-					indent++;
-				} else {
-					Object key = getCacheKey(asm.formulaOffset[formulaid], Arrays.copyOfRange(stack, sp - op1 - 1 + 1, sp+1));
-					stack[sp--] = null; //get rid of funcref
-					V tmp = readCache(key);
-					if (tmp!=null) {
-						if (TRACE) {
-							indent();
-							System.out.print("found result in cache: ");
-							System.out.print(tmp);
-							System.out.println();
-						}
-						sp -= op1-1;
-						stack[sp] = tmp;
-						if (op1>1) {
-							Arrays.fill(stack, sp+1, sp+op1, null);
-						}
-					} else {
-						stack[sp--] = null; //get rid of funcref
-						keystack[++ksp] = key;
-						callstack[csp] = pc;
-						callstack[csp+1] = bp;
-						callstack[csp+2] = formulaid;
-						csp += 3;
-						bp = sp - op1 + 1;
-						pc = asm.formulaOffset[formulaid];
-						sp = bp + asm.formulaMaxvar[formulaid] - 1;
-						indent++;
-					}
-				}
+				
+				call_formulaid = formulaid;
+				call_nargs = op1;
+				call_bp = sp - call_nargs + 1;
 				break;
 			}
 			case INSTR_CALLFORMULA                 : { //"formulaid", OPTYPE_INT, "nargs", OPTYPE_INT) //arg1 ... arg_nargs -- result
-				int formulaid = op1;
-				if (asm.formulaSimple[formulaid]) {
-					callstack[csp] = pc;
-					callstack[csp+1] = bp;
-					callstack[csp+2] = formulaid;
-					csp += 3;
-					bp = sp - op2 + 1;
-					pc = asm.formulaOffset[formulaid];
-					sp = bp + asm.formulaMaxvar[formulaid] - 1;
-					indent++;
-				} else {
-					Object key = getCacheKey(asm.formulaOffset[formulaid], Arrays.copyOfRange(stack, sp - op2 + 1, sp+1));
-					V tmp = readCache(key);
-					if (tmp!=null) {
-						if (TRACE) {
-							indent();
-							System.out.print("found result in cache: ");
-							System.out.print(tmp);
-							System.out.println();
-						}
-						sp = sp - op2 + 1;
-						stack[sp] = tmp;
-						if (op2>1) {
-							Arrays.fill(stack, sp+1, sp+op2, null);
-						}
-					} else {
-						keystack[++ksp] = key;
-						callstack[csp] = pc;
-						callstack[csp+1] = bp;
-						callstack[csp+2] = formulaid;
-						csp += 3;
-						bp = sp - op2 + 1;
-						pc = asm.formulaOffset[formulaid];
-						sp = bp + asm.formulaMaxvar[formulaid] - 1;
-						indent++;
-					}
-				}
+				call_formulaid = op1;
+				call_nargs = op2;
+				call_bp = sp - call_nargs + 1;
 				break;
 			}
 			case INSTR_CALLFORMULADYN               : { //formulaid nargs arg_list -- result
-				int formulaid = (int) stack[sp-2].longValue();
-				int nargs = (int) stack[sp-1].longValue();
-				V[] args = stack[sp].listValue().toArray(new V[0]);
+				call_formulaid = (int) stack[sp-2].longValue();
+				call_nargs = (int) stack[sp-1].longValue();
+				call_args = stack[sp].listValue().toArray(new V[0]);
 				stack[sp--] = null;
 				stack[sp--] = null;
 				stack[sp--] = null;
-				if (asm.formulaSimple[formulaid]) {
-					callstack[csp] = pc;
-					callstack[csp+1] = bp;
-					callstack[csp+2] = formulaid;
-					csp += 3;
-					bp = sp+1;
-					pc = asm.formulaOffset[formulaid];
-					if (nargs>0) {
-						System.arraycopy(args,  0, stack, bp, nargs); //copy arguments to stack
-					}
-					sp = bp + asm.formulaMaxvar[formulaid] - 1;
-					indent++;
-				} else {
-					Object key = getCacheKey(asm.formulaOffset[formulaid], args);
-					V tmp = readCache(key);
-					if (tmp!=null) {
-						if (TRACE) {
-							indent();
-							System.out.print("found result in cache: ");
-							System.out.print(tmp);
-							System.out.println();
-						}
-						stack[++sp] = tmp;
-					} else {
-						keystack[++ksp] = key;
-						callstack[csp] = pc;
-						callstack[csp+1] = bp;
-						callstack[csp+2] = formulaid;
-						csp += 3;
-						bp = sp+1;
-						pc = asm.formulaOffset[formulaid];
-						if (nargs>0) {
-							System.arraycopy(args,  0, stack, bp, nargs); //copy arguments to stack
-						}
-						sp = bp + asm.formulaMaxvar[formulaid] - 1;
-						indent++;
-					}
-				}
+				call_bp = sp+1;
 				break;
 			}
 			case INSTR_CALLFUNC                    : { //"funcid", OPTYPE_INT, "nargs", OPTYPE_INT) //arg1 ... arg_nargs -- result
 				Func func = asm.funcs[op1];
-				int formulaid = func.formula;
-				if (asm.formulaSimple[formulaid]) {
-					callstack[csp] = pc;
-					callstack[csp+1] = bp;
-					callstack[csp+2] = formulaid;
-					csp += 3;
-					bp = sp - op2 + 1;
-					pc = asm.formulaOffset[formulaid];
-					sp = bp + asm.formulaMaxvar[formulaid] - 1;
-					indent++;
-				} else {
-					Object key = getCacheKey(asm.formulaOffset[formulaid], Arrays.copyOfRange(stack, sp - op2 + 1, sp+1));
-					V tmp = readCache(key);
-					if (tmp!=null) {
-						if (TRACE) {
-							indent();
-							System.out.print("found result in cache: ");
-							System.out.print(tmp);
-							System.out.println();
-						}
-						sp = sp - op2 + 1;
-						stack[sp] = tmp;
-						if (op2>1) {
-							Arrays.fill(stack, sp+1, sp+op2, null);
-						}
-					} else {
-						keystack[++ksp] = key;
-						callstack[csp] = pc;
-						callstack[csp+1] = bp;
-						callstack[csp+2] = formulaid;
-						csp += 3;
-						bp = sp - op2 + 1;
-						pc = asm.formulaOffset[formulaid];
-						sp = bp + asm.formulaMaxvar[formulaid] - 1;
-						indent++;
-					}
-				}
+				call_formulaid = func.formula;
+				call_nargs = op2;
+				call_bp = sp - call_nargs + 1;
 				break;
 			}
 			case INSTR_CALLNODECALC                : { //"nodeid", OPTYPE_INT, "calcid", OPTYPE_INT, "nargs", OPTYPE_BYTE) // arg1 ... arg_nargs -- result
-				int formulaid = nodes[op1].nodecalcList[op2].formula;
-				if (asm.formulaSimple[formulaid]) {
-					callstack[csp] = pc;
-					callstack[csp+1] = bp;
-					callstack[csp+2] = formulaid;
-					csp += 3;
-					bp = sp - op3 + 1;
-					pc = asm.formulaOffset[formulaid];
-					sp = bp + asm.formulaMaxvar[formulaid] - 1;
-					indent++;
-				} else {
-					Object key = getCacheKey(asm.formulaOffset[formulaid], Arrays.copyOfRange(stack, sp - op3 + 1, sp+1));
-					V tmp = readCache(key);
-					if (tmp!=null) {
-						if (TRACE) {
-							indent();
-							System.out.print("found result in cache: ");
-							System.out.print(tmp);
-							System.out.println();
-						}
-						sp = sp - op3 + 1;
-						stack[sp] = tmp;
-						if (op3>1) {
-							Arrays.fill(stack, sp+1, sp+op3, null);
-						}
-					} else {
-						keystack[++ksp] = key;
-						callstack[csp] = pc;
-						callstack[csp+1] = bp;
-						callstack[csp+2] = formulaid;
-						csp += 3;
-						bp = sp - op3 + 1;
-						pc = asm.formulaOffset[formulaid];
-						sp = bp + asm.formulaMaxvar[formulaid] - 1;
-						indent++;
-					}
-				}
+				call_formulaid = nodes[op1].nodecalcList[op2].formula;
+				call_nargs = op3; 
+				call_bp = sp - call_nargs + 1;
 				break;
 			}
 			case INSTR_CALLNODECALCLIST            : { //"nodeid", OPTYPE_INT, "calcid", OPTYPE_INT, "nargs", OPTYPE_BYTE, "selfcall", OPTYPE_BYTE) // arg1 ... arg_nargs -- result
@@ -2437,35 +2407,20 @@ public final class TciMachine implements S {
 //				out.println("   ; argument 3: nr of parameters");
 //				out.println("   ; argument 4: selfcall (0/1)");
 //				out.println("   ; argument 5: resultlist");
-				int formulaid = 0;
-				callstack[csp] = pc;
-				callstack[csp+1] = bp;
-				callstack[csp+2] = formulaid;
-				csp += 3;
-
-				V args = V.getInstance(Arrays.copyOfRange(stack, sp-op3+1, sp+1));
-				
-				/* remove arg1 ... arg_n  from stack */
-				Arrays.fill(stack, sp-op3+1, sp+1, null);
-				sp = sp - op3;
+				call_formulaid = 0;
 
 				V nodeid = V.getInstance(op1);
 				V calcid = V.getInstance(op2);
 				V nargs = V.getInstance(op3);
 				V selfcall  = V.getInstance(op4);
 				
-				/* put arguments for summation-formula to stack */
-				bp = sp+1;
-				stack[++sp] = args;
-				stack[++sp] = nodeid;
-				stack[++sp] = calcid;
-				stack[++sp] = nargs;
-				stack[++sp] = selfcall;
-				stack[++sp] = VList.getInstanceMaxSize(8);
-
-				pc = asm.formulaOffset[formulaid];
-				sp = bp + asm.formulaMaxvar[formulaid] - 1;
-				indent++;
+				call_bp = sp - op3 + 1; //points to return value now
+				V args = V.getInstance(Arrays.copyOfRange(stack, call_bp, call_bp + op3));
+				/* remove arg1 ... arg_n  from stack */
+				Arrays.fill(stack, call_bp, call_bp + op3, null);
+				sp = call_bp - 1;
+				call_args = new V[] { args, nodeid,	calcid,	nargs, selfcall, VList.getInstanceMaxSize(8)};
+				call_nargs = 6;
 				break;
 			}
 			case INSTR_CALLNODECALCSUM             : { //"nodeid", OPTYPE_INT, "calcid", OPTYPE_INT, "nargs", OPTYPE_BYTE, "selfcall", OPTYPE_BYTE) // arg1 ... arg_nargs -- result
@@ -2475,34 +2430,20 @@ public final class TciMachine implements S {
 //				out.println("   ; argument 2: calcid");
 //				out.println("   ; argument 3: nr of parameters");
 //				out.println("   ; argument 4: selfcall (0/1)");
-				int formulaid = 1;
-				callstack[csp] = pc;
-				callstack[csp+1] = bp;
-				callstack[csp+2] = formulaid;
-				csp += 3;
 
-				V args = V.getInstance(Arrays.copyOfRange(stack, sp-op3+1, sp+1));
-				
-				/* remove arg1 ... arg_n  from stack */
-				Arrays.fill(stack, sp-op3+1, sp+1, null);
-				sp = sp - op3;
+				call_formulaid = 1;
 
 				V nodeid = V.getInstance(op1);
 				V calcid = V.getInstance(op2);
 				V nargs = V.getInstance(op3);
 				V selfcall  = V.getInstance(op4);
 				
-				/* put arguments for summation-formula to stack */
-				bp = sp+1;
-				stack[++sp] = args;
-				stack[++sp] = nodeid;
-				stack[++sp] = calcid;
-				stack[++sp] = nargs;
-				stack[++sp] = selfcall;
-
-				pc = asm.formulaOffset[formulaid];
-				sp = bp + asm.formulaMaxvar[formulaid] - 1;
-				indent++;
+				call_bp = sp - op3 + 1; //points to return value now
+				V args = V.getInstance(Arrays.copyOfRange(stack, call_bp, call_bp + op3));
+				/* remove arg1 ... arg_n  from stack */
+				Arrays.fill(stack, call_bp, call_bp + op3, null);
+				call_nargs = 5;
+				call_args = new V[] { args, nodeid, calcid, nargs, selfcall };
 				break;
 			}
 			case INSTR_CMPBIG                      : // a b -- a> b (numerical)
@@ -2652,51 +2593,17 @@ public final class TciMachine implements S {
 					}
 				}
 				op3++; //op3 has number of indizes > 0 
-				V[] args = Arrays.copyOfRange(stack, sp, sp+op3);
+				V[] args = op3>0 ? Arrays.copyOfRange(stack, sp, sp+op3) : null;
 				Arrays.fill(stack, sp, sp+op2, null);
-				if (input.formulaCheck>=0) {
-					if (asm.formulaSimple[formulaid])  {
-						callstack[csp] = pc;
-						callstack[csp+1] = bp;
-						callstack[csp+2] = formulaid;
-						csp += 3;
-						bp = sp;
-						switch(op3) {
-						case 0: stack[bp] = VDouble.vdbl0; stack[bp+1] = VDouble.vdbl0; break;
-						case 1: stack[bp] = V.getInstance(args); stack[bp+1] = VDouble.vdbl0; break;
-						default: stack[bp] = V.getInstance(args); stack[bp+1] = args[1]; 
-						}
-						pc = asm.formulaOffset[formulaid];
-						sp = bp + asm.formulaMaxvar[formulaid] - 1;
-						indent++;
-					} else {
-						Object key = getCacheKey(asm.formulaOffset[formulaid], args);
-						V tmp = readCache(key);
-						if (tmp!=null) {
-							if (TRACE) {
-								indent();
-								System.out.print("found result in cache: ");
-								System.out.print(tmp);
-								System.out.println();
-							}
-							stack[sp] = tmp;
-						} else {
-							keystack[++ksp] = key;
-							callstack[csp] = pc;
-							callstack[csp+1] = bp;
-							callstack[csp+2] = formulaid;
-							csp += 3;
-							bp = sp;
-							switch(op3) {
-							case 0: stack[bp] = VDouble.vdbl0; stack[bp+1] = VDouble.vdbl0; break;
-							case 1: stack[bp] = V.getInstance(args); stack[bp+1] = VDouble.vdbl0; break;
-							default: stack[bp] = V.getInstance(args); stack[bp+1] = args[1]; 
-							}
-							pc = asm.formulaOffset[formulaid];
-							sp = bp + asm.formulaMaxvar[formulaid] - 1;
-							indent++;
-						}
+				if (formulaid>=0) {
+					call_formulaid = formulaid;
+					call_bp = sp;
+					switch(op3) {
+					case 0: stack[call_bp] = VDouble.vdbl0; stack[call_bp+1] = VDouble.vdbl0; break;
+					case 1: stack[call_bp] = V.getInstance(args); stack[call_bp+1] = VDouble.vdbl0; break;
+					default: stack[call_bp] = V.getInstance(args); stack[call_bp+1] = args[1]; 
 					}
+					call_nargs = op3;
 				} else {
 					stack[sp] = this.getInput(op1, args);
 				}
@@ -2705,55 +2612,23 @@ public final class TciMachine implements S {
 			case INSTR_GETINPUT0                   : { //"inputid", OPTYPE_INT) // -- result
 				Input input = asm.inputs[op1];
 				int[] ac = input.autocounters;
-				V[] acValues = null;
+				V[] acValues;
 				int acLen = ac.length;
 				if (acLen>0) {
 					acValues = this.getAutocounterValues(ac);
 					acLen = acValues.length;
+				} else {
+					acValues = null;
 				}
 				int formulaid = input.formulaCheck;
-				if (input.formulaCheck>=0) {
-					if (asm.formulaSimple[formulaid])  {
-						callstack[csp] = pc;
-						callstack[csp+1] = bp;
-						callstack[csp+2] = formulaid;
-						csp += 3;
-						bp = sp+1;
-						switch(acLen) {
-						case 0: stack[bp] = VDouble.vdbl0; stack[bp+1] = VDouble.vdbl0; break;
-						case 1: stack[bp] = V.getInstance(acValues); stack[bp+1] = VDouble.vdbl0; break;
-						default: stack[bp] = V.getInstance(acValues); stack[bp+1] = acValues[1]; 
-						}
-						pc = asm.formulaOffset[formulaid];
-						sp = bp + asm.formulaMaxvar[formulaid] - 1;
-						indent++;
-					} else {
-						Object key = getCacheKey(asm.formulaOffset[formulaid], acValues);
-						V tmp = readCache(key);
-						if (tmp!=null) {
-							if (TRACE) {
-								indent();
-								System.out.print("found result in cache: ");
-								System.out.print(tmp);
-								System.out.println();
-							}
-							stack[++sp] = tmp;
-						} else {
-							keystack[++ksp] = key;
-							callstack[csp] = pc;
-							callstack[csp+1] = bp;
-							callstack[csp+2] = formulaid;
-							csp += 3;
-							bp = sp+1;
-							switch(acLen) {
-							case 0: stack[bp] = VDouble.vdbl0; stack[bp+1] = VDouble.vdbl0; break;
-							case 1: stack[bp] = V.getInstance(acValues); stack[bp+1] = VDouble.vdbl0; break;
-							default: stack[bp] = V.getInstance(acValues); stack[bp+1] = acValues[1]; 
-							}
-							pc = asm.formulaOffset[formulaid];
-							sp = bp + asm.formulaMaxvar[formulaid] - 1;
-							indent++;
-						}
+				if (formulaid>=0) {
+					call_formulaid = formulaid;
+					call_bp = sp+1;
+					call_nargs = acLen;
+					switch(acLen) {
+					case 0: stack[call_bp] = VDouble.vdbl0; stack[call_bp+1] = VDouble.vdbl0; break;
+					case 1: stack[call_bp] = V.getInstance(acValues); stack[call_bp+1] = VDouble.vdbl0; break;
+					default: stack[call_bp] = V.getInstance(acValues); stack[call_bp+1] = acValues[1]; 
 					}
 				} else {
 					stack[++sp] = this.getInputAutocounter(op1, ac);
@@ -2762,63 +2637,29 @@ public final class TciMachine implements S {
 			}
 			case INSTR_GETINPUTCALC                : { //"inputid", OPTYPE_INT, "inputcalcid", OPTYPE_INT, "nargs", OPTYPE_BYTE) // arg1 ... arg_n -- result
 				Input input = asm.inputs[op1];
-				int formulaid = input.inputcalcFormulas[op2];
-				sp = sp - op3 + 1; //points to return value .. which was arg1 on call
+				call_formulaid = input.inputcalcFormulas[op2];
+				call_bp = sp - op3 + 1; //points to return value .. which was arg1 on call
 				for (op4=op3; --op4>=0; ) {
-					if (stack[sp+op4].doubleValue()!=0.0) {
+					if (stack[call_bp+op4].doubleValue()!=0.0) {
 						break;
 					}
 				}
 				op4++; //op4 has number of arguments > 0 now
-				V[] args = Arrays.copyOfRange(stack, sp, sp+op4);
-				Arrays.fill(stack, sp, sp+op3, null);
-				if (asm.formulaSimple[formulaid])  {
-					callstack[csp] = pc;
-					callstack[csp+1] = bp;
-					callstack[csp+2] = formulaid;
-					csp += 3;
-					bp = sp;
-					switch(op4) {
-					case 0: stack[bp] = VDouble.vdbl0; stack[bp+1] = VDouble.vdbl0; break;
-					case 1: stack[bp] = V.getInstance(args); stack[bp+1] = VDouble.vdbl0; break;
-					default: stack[bp] = V.getInstance(args); stack[bp+1] = args[1]; 
-					}
-					pc = asm.formulaOffset[formulaid];
-					sp = bp + asm.formulaMaxvar[formulaid] - 1;
-					indent++;
-				} else {
-					Object key = getCacheKey(asm.formulaOffset[formulaid], args);
-					V tmp = readCache(key);
-					if (tmp!=null) {
-						if (TRACE) {
-							indent();
-							System.out.print("found result in cache: ");
-							System.out.print(tmp);
-							System.out.println();
-						}
-						stack[sp] = tmp;
-					} else {
-						keystack[++ksp] = key;
-						callstack[csp] = pc;
-						callstack[csp+1] = bp;
-						callstack[csp+2] = formulaid;
-						csp += 3;
-						bp = sp;
-						switch(op4) {
-						case 0: stack[bp] = VDouble.vdbl0; stack[bp+1] = VDouble.vdbl0; break;
-						case 1: stack[bp] = V.getInstance(args); stack[bp+1] = VDouble.vdbl0; break;
-						default: stack[bp] = V.getInstance(args); stack[bp+1] = args[1]; 
-						}
-						pc = asm.formulaOffset[formulaid];
-						sp = bp + asm.formulaMaxvar[formulaid] - 1;
-						indent++;
-					}
+				call_nargs = op4;
+				V[] args = Arrays.copyOfRange(stack, call_bp, call_bp+op4);
+				Arrays.fill(stack, call_bp, call_bp+op3, null);
+				switch(op4) {
+				case 0: stack[call_bp] = VDouble.vdbl0; stack[call_bp+1] = VDouble.vdbl0; break;
+				case 1: stack[call_bp] = V.getInstance(args); stack[call_bp+1] = VDouble.vdbl0; break;
+				default: stack[call_bp] = V.getInstance(args); stack[call_bp+1] = args[1]; 
 				}
 				break;
 			} 
 			case INSTR_GETINPUTCALC0               : { //"inputid", OPTYPE_INT, "inputcalcid", OPTYPE_INT) // -- result
 				Input input = asm.inputs[op1];
-				int formulaid = input.inputcalcFormulas[op2];
+				call_formulaid = input.inputcalcFormulas[op2];
+				call_bp = sp+1;
+				
 				int[] ac = input.autocounters;
 				V[] acValues = null;
 				int acLen = ac.length;
@@ -2826,47 +2667,11 @@ public final class TciMachine implements S {
 					acValues = this.getAutocounterValues(ac);
 					acLen = acValues.length;
 				}
-				if (asm.formulaSimple[formulaid])  {
-					callstack[csp] = pc;
-					callstack[csp+1] = bp;
-					callstack[csp+2] = formulaid;
-					csp += 3;
-					bp = sp+1;
-					switch(acLen) {
-					case 0: stack[bp] = VDouble.vdbl0; stack[bp+1] = VDouble.vdbl0; break;
-					case 1: stack[bp] = V.getInstance(acValues); stack[bp+1] = VDouble.vdbl0; break;
-					default: stack[bp] = V.getInstance(acValues); stack[bp+1] = acValues[1]; 
-					}
-					pc = asm.formulaOffset[formulaid];
-					sp = bp + asm.formulaMaxvar[formulaid] - 1;
-					indent++;
-				} else {
-					Object key = getCacheKey(asm.formulaOffset[formulaid], acValues);
-					V tmp = readCache(key);
-					if (tmp!=null) {
-						if (TRACE) {
-							indent();
-							System.out.print("found result in cache: ");
-							System.out.print(tmp);
-							System.out.println();
-						}
-						stack[++sp] = tmp;
-					} else {
-						keystack[++ksp] = key;
-						callstack[csp] = pc;
-						callstack[csp+1] = bp;
-						callstack[csp+2] = formulaid;
-						csp += 3;
-						bp = sp+1;
-						switch(acLen) {
-						case 0: stack[bp] = VDouble.vdbl0; stack[bp+1] = VDouble.vdbl0; break;
-						case 1: stack[bp] = V.getInstance(acValues); stack[bp+1] = VDouble.vdbl0; break;
-						default: stack[bp] = V.getInstance(acValues); stack[bp+1] = acValues[1]; 
-						}
-						pc = asm.formulaOffset[formulaid];
-						sp = bp + asm.formulaMaxvar[formulaid] - 1;
-						indent++;
-					}
+				call_nargs = acLen;
+				switch(acLen) {
+				case 0: stack[call_bp] = VDouble.vdbl0; stack[call_bp+1] = VDouble.vdbl0; break;
+				case 1: stack[call_bp] = V.getInstance(acValues); stack[call_bp+1] = VDouble.vdbl0; break;
+				default: stack[call_bp] = V.getInstance(acValues); stack[call_bp+1] = acValues[1]; 
 				}
 				break;
 			} 
@@ -3040,33 +2845,61 @@ public final class TciMachine implements S {
 				stack[++sp] = this.getTimesCounterV(op1); /* TODO: use getTimesCounterVException in special cases? ... check modelling rules first */ 
 				break;
 			case INSTR_RETURN                      : { // a --      ; pc set, stack frame removed etc.
-				csp-=3;
-				if (csp==0) { //top-level return -> exit machine
-					ret = stack[sp];
-					Arrays.fill(stack, 0, sp+1, null);
-					if (TRACE) {
-						indent(); 
-						System.out.print(pc + ": ");
-						System.out.println("exit with value " + ret.stringValue()); 
-					}
-					indent--;
-					return ret;
-				}
+				csp-=5;
+				int formulaid=(int)callstack[csp+2];
+				boolean caching = callstack[csp+3]==1;
+				/* profiling */
+				ProfilingFormula prof = profilingData.getProfilingFormula(formulaid);
 				stack[bp] = stack[sp]; //move result to top of stack of caller
 				if(sp>bp) {
 					Arrays.fill(stack, bp+1, sp+1, null); //clean up stack
 				}
-				sp = bp; 
-				pc = callstack[csp];
-				bp = callstack[csp+1];
-				int formulaid=callstack[csp+2];
-				if (formulaid>=0 && asm.formulaSimple[formulaid]) {
-					indent--;
-					break;
-				} else {
-					writeCache(keystack[ksp], stack[sp]);
+				sp = bp;
+				/* write result into cache */
+				long timems = prof.endTimer(csp) - callstack[csp+4];
+				if (caching) {
+					writeCache(keystack[ksp], stack[bp]);
 					keystack[ksp--]=null;
+					prof.cacheWrite();
+					/* check cache hit rate */
+					if (prof.cacheLookup % 100 ==0 && (prof.cacheHit==0 || (prof.cacheLookup / prof.cacheHit)>2)) {
+						prof.memoactive = false;
+					}
+//					/* check profile data after a couple of calls*/
+//					if (prof.counter==50) {
+//						prof.memoactive = true;
+//						
+//						if (prof.cacheHit==0 || (prof.cacheLookup / prof.cacheHit)>3 && (timems>10 || prof.time>10)) {
+//							prof.memoactive = false;
+//						}
+//					}
+//						double cost = 400;
+//						double benefit = (double) prof.cacheHit / prof.cacheLookup * prof.time;
+//						if (cost>benefit) {
+//							prof.memoactive = false;
+//						}
+				} else {
+					/* runtime-based activation */
+//					if (!prof.issimple && (timems>10 || prof.time>10)) {
+//						prof.memoactive = true;
+//					}
 				}
+				pc = (int) callstack[csp];
+				bp = (int) callstack[csp+1];
+//				if (asm.formulaSimple[formulaid]) {
+//					/* turn on caching if computation takes some time */
+//					/* problem: falls ich es einschalte während andere aktiv */
+//					if (timems>0 || prof.time>0) {
+//						asm.formulaSimple[formulaid] = false;
+//					}
+//				} else {
+//					/* turn off caching if not good */
+//					if (prof.cacheLookup>10 && prof.cacheLookup % 10 ==0 && (prof.cacheHit==0 || (prof.cacheLookup / prof.cacheHit)>5)) {
+//						asm.formulaSimple[formulaid] = true;
+//						prof.reset();
+//					}
+//				}
+				/* end of profiling */
 				indent--;
 				break;
 			}
@@ -3408,6 +3241,61 @@ public final class TciMachine implements S {
 			default:
 				throw new RuntimeException("invalid instruction: " + instrid);
 			} //end of dispatch switch
+
+			if (call_formulaid>=0) {
+				ProfilingFormula prof = profilingData.getProfilingFormula(call_formulaid);
+				prof.incCounter();
+				boolean done = false;
+//				if (prof.counter>10 && (prof.memoactive || prof.counter<=50))  {
+				if (prof.memoactive)  {
+					prof.cacheLookup();
+					Object key = getCacheKey(asm.formulaOffset[call_formulaid], call_args!=null ? call_args : Arrays.copyOfRange(stack, call_bp, call_bp + call_nargs));
+					V tmp = readCache(key);
+					if (tmp!=null) {
+						prof.cacheHit();
+						if (TRACE) {
+							indent();
+							System.out.print("found result in cache: ");
+							System.out.print(tmp);
+							System.out.println();
+						}
+						sp = call_bp;
+						stack[sp] = tmp;
+						if (call_args==null && call_nargs>1) {
+							Arrays.fill(stack, sp+1, sp+call_nargs, null);
+						}
+						done = true;
+					} else {
+						keystack[++ksp] = key;
+						callstack[csp+3] = 1; //with caching
+					}
+				} else {
+					callstack[csp+3] = 0; //no caching
+					/* counter-based */
+//					if (!prof.issimple && prof.counter>100) {
+//						prof.memoactive = true;
+//					}
+				}
+					
+				if (!done) {
+					callstack[csp] = pc;
+					callstack[csp+1] = bp;
+					callstack[csp+2] = call_formulaid;
+					callstack[csp+4] = prof.startTimer(csp);
+					csp += 5;
+					bp = call_bp;
+					if (call_args!=null && call_nargs>0) {
+						System.arraycopy(call_args,  0, stack, bp, call_nargs); //copy arguments to stack
+					}
+					pc = asm.formulaOffset[call_formulaid];
+					sp = bp + asm.formulaMaxvar[call_formulaid] - 1;
+					indent++;
+				}
+			}
+			if (pc<0) {
+				break;
+			}
+			
 			if (TRACE) {
 				indent();
 				System.out.print(pc + ": ");
@@ -3439,11 +3327,7 @@ public final class TciMachine implements S {
 				System.out.print(Arrays.toString(Arrays.copyOf(keystack, ksp+1)));
 				System.out.println();
 			}
-
 			/* decode operation */
-			if (pc<0) {
-				break;
-			}
 			instrid = bytecode[pc++] & 0xFF;
 			if (instrid > 0x7F) { //additional operands?
 				instrid = instrid & 0x7F;
@@ -3525,18 +3409,13 @@ public final class TciMachine implements S {
 		} //end of interpreter loop
 		
 		/* return top of stack as result */
-		if (sp==0) {
-			ret = stack[0];
-			stack[0] = null;
-			return ret;
-		} else {
-			if (sp>0) {
-				ret = stack[sp];
-				Arrays.fill(stack, 0, sp+1, null);
-				return ret;
-			} else {
-				return null;
-			}
+		ret = stack[sp];
+		if (TRACE) {
+			indent(); 
+			System.out.println("exit with value " + ret.stringValue()); 
 		}
+		/* clean up the stack */
+		Arrays.fill(stack, 0, sp+1, null);
+		return ret;
 	}
 }
